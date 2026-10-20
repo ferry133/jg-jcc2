@@ -43,6 +43,7 @@ from __future__ import annotations
 import argparse
 import base64
 import contextlib
+import datetime
 import importlib.util
 import io
 import json
@@ -58,6 +59,12 @@ import urllib.parse
 import urllib.request
 
 PASS, FAIL, UNKNOWN = 0, 1, 2
+# A handover cell whose subject this cluster does not have (cell 15 with no
+# tenants declared). Printed as `skip` and counted on its own line: never as a
+# pass, and not as "could not measure" either, because nothing is missing —
+# a cell that is UNKNOWN on every cluster without tenants would be read past
+# until it was ignored, which is how a check gets switched off.
+SKIP = 3
 
 # Reused verbatim from the runbook's history scan, and from
 # delivery-ticket.py's comment guard. One list, three call sites: three
@@ -2467,6 +2474,319 @@ def cell_arrived_on_own_identity(args) -> tuple[int, str, str | None]:
         f"call"), NEED_HUMAN
 
 
+# ---- cell 14: the os:operator credential (jg-base im-onsite-operator-tools)
+
+TAINT_LABEL = "omni.sidero.dev/tainted-by-break-glass"
+_CRT_LINE = re.compile(r"^\s*crt:\s*([A-Za-z0-9+/=]+)\s*$", re.M)
+_X509_DATE = "%b %d %H:%M:%S %Y GMT"
+
+
+def _utcnow() -> datetime.datetime:
+    """The one clock cell 14 reads; the tests replace it."""
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
+def _operator_cert_facts(root: pathlib.Path):
+    """(facts, reason, kind) for cluster.yaml's `talos_operator_config`.
+
+    facts is {"roles": [...], "not_before": datetime, "not_after": datetime};
+    (None, None, None) means the field is absent, which is a state and not an
+    error. reason with a kind is "could not read"; reason without one is "the
+    value is not a talosconfig".
+
+    Reads the client CERTIFICATE only, through `openssl x509` -- public
+    material. The `key:` beside it is never decoded, and nothing here returns
+    the config, the cert or the key: the same rule `_cert_binding` follows for
+    cloudflared's cert (parse, keep two fields, drop the object), because this
+    output gets pasted into handover notes.
+    """
+    raw, err = _merged_config(root)
+    if err:
+        return None, err, NEED_TOOL
+    cfg = raw.get("talos_operator_config")
+    if cfg in (None, ""):
+        return None, None, None
+    if not isinstance(cfg, str):
+        return None, "talos_operator_config is not a string — not a talosconfig", None
+    crts = _CRT_LINE.findall(cfg)
+    if not crts:
+        return None, ("talos_operator_config has no `crt:` line — not a talosconfig "
+                      "(the skill writes the file omnictl produced, verbatim)"), None
+    if not shutil.which("openssl"):
+        return None, "openssl is not on PATH — cannot read the certificate's dates", NEED_TOOL
+    try:
+        pem = base64.b64decode(crts[0], validate=True).decode("ascii")
+    except Exception:  # noqa: BLE001 — not a finding about the cluster
+        return None, "the `crt:` value did not decode to a PEM certificate", None
+    r = run(["openssl", "x509", "-noout", "-subject", "-nameopt", "RFC2253",
+             "-startdate", "-enddate"], input=pem)
+    if r.returncode != 0:
+        return None, f"openssl could not parse the certificate: {r.stderr.strip()[:120]}", None
+    fields = dict(ln.split("=", 1) for ln in r.stdout.splitlines() if "=" in ln)
+    try:
+        nb = datetime.datetime.strptime(fields["notBefore"].strip(), _X509_DATE)
+        na = datetime.datetime.strptime(fields["notAfter"].strip(), _X509_DATE)
+    except (KeyError, ValueError) as e:
+        return None, (f"could not read the certificate's dates ({type(e).__name__}: {e}) "
+                      f"— the openssl output shape changed"), NEED_TOOL
+    utc = datetime.timezone.utc
+    roles = [part[2:] for part in fields.get("subject", "").split(",")
+             if part.strip().startswith("O=")]
+    return ({"roles": roles, "not_before": nb.replace(tzinfo=utc),
+             "not_after": na.replace(tzinfo=utc)}, None, None)
+
+
+def _omni_taint(args, cluster: str) -> tuple[bool | None, str]:
+    """(tainted, sentence). tainted is None when Omni could not be read here.
+
+    Read for context only -- see cell_operator_credential for why the label
+    never decides the verdict. Fed from `--cluster-json` (a captured
+    `omnictl get clusters <name> -o json`) when given, the way cell 1 reads
+    its captures.
+    """
+    if not cluster:
+        return None, "Omni not asked: no cluster_name in cluster.yaml"
+    data, err, _kind = _omni_json(args, "cluster-json", getattr(args, "cluster_json", None),
+                                  "get", "clusters", cluster, "-o", "json")
+    if data is None:
+        return None, f"Omni not read here ({err})"
+    labels = ((data.get("metadata") or {}).get("labels") or {}) if isinstance(data, dict) else {}
+    if TAINT_LABEL in labels:
+        return True, f"Omni labels {cluster} {TAINT_LABEL}"
+    return False, f"Omni has no {TAINT_LABEL} label on {cluster}"
+
+
+def cell_operator_credential(args) -> tuple[int, str, str | None]:
+    """14. The os:operator credential, if any, is valid — and Omni's taint is information.
+
+    jg-base im-onsite-operator-tools (2026-10-13): a delivered cluster MAY carry
+    a direct-LAN `os:operator` talosconfig for its talos-mcp sidecar, minted
+    once by `fleet-ops talos-operator-credential mint` as an Omni break-glass.
+    Two things this cell must get right, and the second is why it exists:
+
+      * The credential lives one year and Omni cannot revoke it. Expired, the
+        sidecar reads it as absent -- reboot_node silently gone, every signal
+        still green. So expiry IS a failing condition, the mint date
+        (notBefore) is printed so the reader can see its age, and under 30
+        days the note leads with it.
+      * Minting it labels the cluster `tainted-by-break-glass` in Omni. On this
+        fleet that is the EXPECTED state of a delivered cluster, not a defect
+        (root spec operator-credential-lifecycle, "Tainted is an expected
+        state"). The label is read and printed, and it never decides the
+        verdict. Measured on throwaway clusters by fleet-ops-77 [af719f]
+        (fleet-ops `.claude/skills/talos-operator-credential/SKILL.md`
+        §Readings; `dbcef0b` 2026-10-13, `9a63c2a` 2026-10-14):
+          - the taint restricts none of template sync, cluster lock/unlock,
+            manifest-sync or a Talos upgrade (v1.13.2 -> v1.13.3);
+          - `omnictl cluster secret rotate talos-ca` completes in about a
+            second with no reboot, and the old break-glass is then refused
+            (`x509: certificate signed by unknown authority`) -- rotation
+            REVOKES the credential;
+          - rotation does NOT clear the label: its timestamp is unchanged, and
+            a re-mint moves it to the last mint. So the label says "a
+            break-glass was minted at some point", never "one is live now".
+
+    The one combination handed to a person: Omni says tainted and the repo
+    carries no credential. Three histories produce it, and this cell cannot
+    tell them apart (cluster.yaml cannot say whether a credential that is not
+    in it is still live):
+      (a) a break-glass minted outside the pipeline -- live, tracked nowhere
+          (2026-10-11's shape). Action: rotate talos-ca.
+      (b) the field was removed from cluster.yaml without a rotation -- still
+          live. Action: rotate talos-ca.
+      (c) rotated AND removed -- no live credential; the label stays forever
+          because rotation does not clear it. Action: none.
+    (a)/(b) and (c) need opposite actions, which is why it stays `?`.
+
+    Output discipline as cell 3: roles, dates and a label name. Never the
+    config, the cert or the key.
+    """
+    d = pathlib.Path(args.dir)
+    if not _is_cluster_repo(d):
+        return UNKNOWN, (f"{d} is not a cluster repo (no cluster.yaml) — run this "
+                         f"in the cluster's directory"), NEED_PLACE
+    facts, err, kind = _operator_cert_facts(d)
+    if err:
+        if kind:
+            return UNKNOWN, err, kind
+        return FAIL, f"talos_operator_config is set but unusable: {err}", None
+    raw, _ = _merged_config(d)
+    tainted, omni = _omni_taint(args, (raw or {}).get("cluster_name") or "")
+
+    if facts is None:
+        if tainted:
+            return UNKNOWN, (
+                f"cluster.yaml carries no talos_operator_config, yet {omni}. "
+                f"Three histories look like this: (a) a break-glass minted outside "
+                f"the pipeline (the 2026-10-11 shape: live, tracked nowhere), (b) "
+                f"the field removed without a rotation (still live), or (c) rotated "
+                f"and removed (no live credential — `rotate talos-ca` revokes the "
+                f"credential but never clears this label, measured 2026-10-13). "
+                f"(a) and (b) need `omnictl cluster secret rotate talos-ca`; (c) "
+                f"needs nothing. A person decides which"), NEED_HUMAN
+        return PASS, (f"no talos_operator_config: reader-only sidecar, no reboot_node, "
+                      f"no direct-LAN fallback — the pre-2026-10 shape, by choice. {omni}"), None
+
+    now = _utcnow()
+    roles, nb, na = facts["roles"], facts["not_before"], facts["not_after"]
+    when = f"minted {nb:%Y-%m-%d}, expires {na:%Y-%m-%d}"
+    if "os:operator" not in roles:
+        return FAIL, (f"talos_operator_config's certificate carries roles "
+                      f"{roles or ['(none)']}, not os:operator — reboot_node needs "
+                      f"os:operator, and anything higher is more than this design "
+                      f"grants ({when})"), None
+    if na <= now:
+        return FAIL, (f"talos_operator_config EXPIRED on {na:%Y-%m-%d} ({when}) — the "
+                      f"sidecar reads it as absent, so reboot_node and the direct-LAN "
+                      f"fallback are silently gone; rotate through "
+                      f"`fleet-ops talos-operator-credential`"), None
+    left = (na - now).days
+    note = f"os:operator, {when} ({left} days left). {omni}"
+    if left < 30:
+        note = f"EXPIRES IN {left} DAYS — rotate now. " + note
+    if tainted is False:
+        note += (" — unexpected for a credential minted through Omni (a cluster "
+                 "outside Omni mints from its own PKI and is never labelled)")
+    return PASS, note, None
+
+
+def _declared_tenants(args) -> tuple[list[dict] | None, str | None, str | None]:
+    """`app_repos` from <dir>/cluster.yaml: name, repository, kind, namespaces.
+
+    Only those four fields are extracted, by yq, so nothing else in
+    cluster.yaml (it holds every credential the cluster has) reaches this
+    process's output.
+    """
+    path = pathlib.Path(args.dir) / "cluster.yaml"
+    if not path.is_file():
+        return None, f"{path} not here — run this in the cluster's directory", NEED_PLACE
+    if not shutil.which("yq"):
+        return None, "yq is not on PATH", NEED_TOOL
+    expr = ('[(.app_repos // [])[] | {"name": .name, "repository": .repository, '
+            '"kind": .kind, "namespaces": (.namespaces // [.name])}]')
+    r = run(["yq", "-o=json", expr, str(path)])
+    if r.returncode != 0:
+        return None, f"yq could not read {path.name}: {r.stderr.strip()[:120]}", NEED_TOOL
+    try:
+        return json.loads(r.stdout), None, None
+    except json.JSONDecodeError as e:
+        return None, f"yq output was not JSON: {e}", NEED_TOOL
+
+
+def _registered_keys(repo: str) -> tuple[list[dict] | None, str | None]:
+    """GitHub's deploy keys for a repo: [{key: "<type> <b64>", read_only}]."""
+    if not shutil.which("gh"):
+        return None, "gh is not on PATH"
+    r, terr = _run_bounded(["gh", "api", f"repos/{repo}/keys", "--jq",
+                            "[.[] | {key, read_only}]"], REMOTE_TIMEOUT,
+                           "gh api repos/…/keys")
+    if r is None:
+        return None, terr
+    if r.returncode != 0:
+        return None, f"gh api repos/{repo}/keys: {r.stderr.strip()[:120]}"
+    try:
+        return [{"key": " ".join(k["key"].split()[:2]), "read_only": k["read_only"]}
+                for k in json.loads(r.stdout or "[]")], None
+    except (json.JSONDecodeError, KeyError, TypeError) as e:
+        return None, f"unexpected gh output: {e}"
+
+
+def _public_half(private: pathlib.Path) -> tuple[str | None, str | None]:
+    """`<type> <b64>` of a tenant key: the `.pub` beside it, else ssh-keygen -y.
+    Only the public half is ever returned or printed."""
+    pub = private.with_name(private.name + ".pub")
+    if pub.is_file():
+        return " ".join(pub.read_text().split()[:2]), None
+    if not private.is_file():
+        return None, f"{private} not here"
+    if not shutil.which("ssh-keygen"):
+        return None, "ssh-keygen is not on PATH"
+    r = run(["ssh-keygen", "-y", "-f", str(private)])
+    if r.returncode != 0:
+        return None, f"ssh-keygen -y could not read {private.name}"
+    return " ".join(r.stdout.split()[:2]), None
+
+
+def cell_tenants(args) -> tuple[int, str, str | None]:
+    """Every declared tenant is live and wired; nothing undeclared is.
+
+    jgct#214 task 3.8 (fleet-ops root `standalone-app-repos`). Per tenant in
+    cluster.yaml: Kustomization `tenant-<name>` Ready, its read-only deploy key
+    registered on the repo AS read-only, the agent's write key registered AS
+    writable, and `tenant-ingress` present in each declared namespace; plus
+    `cluster-tenants` Ready. In the other direction, a live `tenant-*`
+    Kustomization that cluster.yaml does not declare fails: it is either a
+    tenant that was removed without its revoke, or a cluster.yaml that is not
+    this cluster's.
+
+    No tenants declared and none live: SKIP, not PASS. Positive control for
+    the live listing: it must contain `cluster-secrets`, which every cluster
+    has, or an empty answer is the wrong cluster or the wrong question.
+    """
+    declared, err, why = _declared_tenants(args)
+    if declared is None:
+        return UNKNOWN, err, why
+    okc, out, err = _kubectl(args, "-n", "flux-system", "get",
+                             "kustomizations.kustomize.toolkit.fluxcd.io", "-o", "json")
+    if not okc:
+        return UNKNOWN, err, NEED_PLACE
+    items = {it["metadata"]["name"]: it for it in json.loads(out).get("items", [])}
+    if "cluster-secrets" not in items:
+        return UNKNOWN, ("flux-system has no Kustomization cluster-secrets — not a "
+                         "cluster from this template, or the query is wrong; an empty "
+                         "tenant list here would mean nothing"), NEED_PLACE
+    live = sorted(n for n in items if n.startswith("tenant-"))
+    want = sorted(f"tenant-{t['name']}" for t in declared)
+    if not declared and not live and "cluster-tenants" not in items:
+        return SKIP, ("no app_repos declared and no tenant Kustomization live "
+                      f"({len(items)} Kustomizations read)"), None
+
+    def ready(name: str) -> bool:
+        conds = items.get(name, {}).get("status", {}).get("conditions", [])
+        return any(c.get("type") == "Ready" and c.get("status") == "True" for c in conds)
+
+    fails, unknowns = [], []
+    for name in sorted(set(live) - set(want)):
+        fails.append(f"{name} is live but not declared in cluster.yaml")
+    if declared and not ready("cluster-tenants"):
+        fails.append("cluster-tenants is not Ready" if "cluster-tenants" in items
+                     else "cluster-tenants does not exist")
+    for t in declared:
+        n = f"tenant-{t['name']}"
+        if n not in items:
+            fails.append(f"{n}: declared, no Kustomization")
+        elif not ready(n):
+            fails.append(f"{n}: not Ready")
+        for ns in t["namespaces"]:
+            okp, _, perr = _kubectl(args, "-n", ns, "get",
+                                    "ciliumnetworkpolicies.cilium.io", "tenant-ingress",
+                                    "-o", "name")
+            if not okp:
+                fails.append(f"{ns}: no CiliumNetworkPolicy tenant-ingress ({perr[:60]})")
+        keys, kerr = _registered_keys(t["repository"])
+        if keys is None:
+            unknowns.append(f"{t['name']}: deploy keys not readable — {kerr}")
+            continue
+        wants = [("deploy", True)] + ([("write", False)] if t["kind"] == "agent" else [])
+        for kind, read_only in wants:
+            pub, perr = _public_half(pathlib.Path(args.dir) / "tenants" / f"{t['name']}.{kind}.key")
+            if pub is None:
+                unknowns.append(f"{t['name']}: {kind} key — {perr}")
+                continue
+            match = [k for k in keys if k["key"] == pub]
+            if not match:
+                fails.append(f"{t['repository']}: {kind} key not registered")
+            elif match[0]["read_only"] is not read_only:
+                fails.append(f"{t['repository']}: {kind} key registered with "
+                             f"read_only={match[0]['read_only']}, expected {read_only}")
+    summary = f"{len(declared)} tenant(s) declared, {len(live)} live"
+    if fails:
+        return FAIL, summary + ": " + "; ".join(fails), None
+    if unknowns:
+        return UNKNOWN, summary + ": " + "; ".join(unknowns), NEED_TOOL
+    return PASS, summary + ": every Kustomization Ready, keys registered as declared, policies present", None
+
+
 def _not_implemented(cell: int, needs: str):
     """A cell nobody has written yet, which is NOT the same as one that cannot
     reach its subject from here. The phase number deliberately does not appear:
@@ -2502,6 +2822,12 @@ HANDOVER_CELLS = [
     (11, "the dead-man switch has a ping URL", cell_dead_man_switch),
     (12, "health-check recipients read back from a real run", cell_recipients_readback),
     (13, "backup_r2_endpoint read back off the cluster", cell_r2_endpoint),
+    # 14 is im-onsite-operator-tools (2026-10-13), after the thirteen the runbook
+    # numbers -- the runbook's Step 5 table gains the row from fleet-ops's side.
+    (14, "operator credential valid; Omni's taint read as information", cell_operator_credential),
+    # 15 is standalone-app-repos (jgct#214 task 3.8): the runbook's Step 5 table
+    # gains the row from fleet-ops's side, as with 14.
+    (15, "tenants: Ready, deploy keys registered as declared, policies present", cell_tenants),
 ]
 
 
@@ -2525,7 +2851,7 @@ def check_handover(args) -> int:
         one = {why} if isinstance(why, str) else set(why)
         return [k for k in order if k in one]
 
-    mark = {PASS: "PASS ", FAIL: "FAIL ", UNKNOWN: "?    "}
+    mark = {PASS: "PASS ", FAIL: "FAIL ", UNKNOWN: "?    ", SKIP: "skip "}
     for num, title, rc, note, why in results:
         # A kind on a PASS is shown too. Cell 12 passes its machine half and
         # still leaves a person's half open ("are these the people who would
@@ -2541,8 +2867,14 @@ def check_handover(args) -> int:
     unknown = [(n, kinds_of(why)) for n, _, rc, _, why in results if rc == UNKNOWN]
     passed_human = [n for n, _, rc, _, why in results
                     if rc == PASS and NEED_HUMAN in kinds_of(why)]
+    skipped = [n for n, _, rc, _, _ in results if rc == SKIP]
     print()
-    print(f"{len(results) - len(fails) - len(unknown)}/{len(results)} cells pass.")
+    print(f"{len([r for r in results if r[2] == PASS])}/{len(results) - len(skipped)} "
+          f"applicable cells pass.")
+    if skipped:
+        word = "cell" if len(skipped) == 1 else "cells"
+        print(f"{len(skipped)} {word} not applicable to this cluster (not a pass): "
+              f"{', '.join(str(n) for n in skipped)}")
 
     if unknown:
         word = "cell" if len(unknown) == 1 else "cells"
@@ -2637,6 +2969,9 @@ def main() -> None:
     hv.add_argument("--node-token-json",
                     help="cell 1: a captured `omnictl get nodeuniquetokenstatus"
                          " <uuid> -o json`, instead of asking Omni here")
+    hv.add_argument("--cluster-json",
+                    help="cell 14: a captured `omnictl get clusters <name> -o json`, "
+                         "instead of asking Omni here; read for the taint label only")
     hv.set_defaults(func=check_handover)
 
     t = sub.add_parser("tunnel-cert")

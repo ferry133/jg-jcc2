@@ -39,6 +39,12 @@ RUN = [
     # its fixtures in a temp dir and never reads a real cluster.yaml, because
     # `cue vet` echoes the values it rejects.
     "check-api-addr-scope.py",
+    # Same needs and same temp-dir fixtures; the `app_repos` boundary
+    # (jgct#214 task 3.1).
+    "check-app-repos-schema.py",
+    # Needs age-keygen; runs the real Plugin.data() from a temp dir with a
+    # throwaway key of its own (jgct#214 task 3.2).
+    "check-app-repos-plugin.py",
     "check-claude-config-storage-default.py",
     "check-claudecode-postgres-derive.py",
     "check-claudecode-factory-auth.py",
@@ -53,6 +59,15 @@ RUN = [
     "check-node-dns-path.py",
     "check-credential-expiry-pairing.py",
     "check-template-integrity.py",
+    # Needs makejinja, cue, age-keygen and yq (all from mise). Renders four
+    # fixtures, plus one of them with three tenant scenarios (including the
+    # cluster.sample.yaml example), in temp dirs with placeholder credentials
+    # and a throwaway key;
+    # the `--against <ref>` mode is not run here, see its docstring (jgct#214).
+    "check-tenant-render.py",
+    # Same tools and fixtures: extras come from jg-extras, the secretRef
+    # resolves, clusters without extras are untouched (jgct#217).
+    "check-extras-source.py",
 ]
 
 # Cannot see their subject from a bare template checkout. The reason is the

@@ -1,0 +1,3 @@
+# No extra claude instance declared in cluster.yaml (claude_instances absent), so the template renders
+# nothing here; this hand-placed file keeps instances/kustomization.yaml buildable until the template
+# stops referencing a file it may not render. Measured 2026-10-20 on jg-jcc2 after syncing jgct a3cc15a.
