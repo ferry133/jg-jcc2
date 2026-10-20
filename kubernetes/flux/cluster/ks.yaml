@@ -274,3 +274,68 @@ spec:
         kind: Secret
   dependsOn:
     - name: cluster-apps-base
+---
+# ── cluster-tenants — namespace-level objects and Secrets for every tenant ──
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-tenants
+  namespace: flux-system
+spec:
+  decryption:
+    provider: sops
+  deletionPolicy: WaitForTermination
+  interval: 1h
+  path: ./kubernetes/tenants
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  dependsOn:
+    - name: cluster-apps-base
+---
+# ── tenant acme (vendor: ferry133/jg-jcc2-acme-app) ──
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-acme
+  namespace: flux-system
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: tenant-acme
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: "ssh://git@github.com/ferry133/jg-jcc2-acme-app.git"
+  ref:
+    # Quoted for the reason the jg-base GitRepository above gives.
+    branch: "main"
+  # Read-only deploy key, rendered by cluster-tenants (task 3.4), same keys as
+  # the root sync's github-deploy-key: identity, known_hosts.
+  secretRef:
+    name: tenant-acme-git-auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: tenant-acme
+  namespace: flux-system
+spec:
+  serviceAccountName: tenant-acme
+  decryption:
+    provider: sops
+    secretRef:
+      name: tenant-acme-sops-age
+  deletionPolicy: WaitForTermination
+  interval: 1h
+  path: ./
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: tenant-acme
+    namespace: flux-system
+  dependsOn:
+    - name: cluster-tenants
