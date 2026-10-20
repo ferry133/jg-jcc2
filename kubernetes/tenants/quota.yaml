@@ -10,7 +10,7 @@ spec:
     # and ResourceQuota takes quantities.
     requests.cpu: "4"
     requests.memory: "8Gi"
-    pods: "50"
+    pods: "3"
     # The LAN-IP grant (D9). 0 without one: a tenant with no grant can create
     # no LoadBalancer Service at all, whatever the pools would do.
     services.loadbalancers: "0"
