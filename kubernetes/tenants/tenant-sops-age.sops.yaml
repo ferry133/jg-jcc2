@@ -4,20 +4,44 @@ metadata:
   name: tenant-acme-sops-age
   namespace: flux-system
 stringData:
-  age.agekey: ENC[AES256_GCM,data:pP/SNGyT1WkRSdDFrakm1bM8U/Z6tdSXJddd9s5DOs+bemNVZSW90pbcCWfuMtyudLjbYsONHcG0KzXp+wfbdwFJmXmcy3nv1sDcs3D7YLXluEgbveXWPA1BqYLWhwZvczqKBDa0nJT4FD+UREwbFpKAZs2810Ce42br0lwoDdv41LFOBblo2GnX4Q3uD4S83p83FMpcKJ214Bh08W5CK2QQtDMg3KCbqDq0VkrUa1U3n620bIWw8Th1kVip,iv:S6BmGkW6d2yPW+CWV8UkinGSTvMcKCJZMEftVer/8/Q=,tag:04isAur9LLyXKDoXlybWqQ==,type:str]
+  age.agekey: ENC[AES256_GCM,data:aU8FCl0yR5USuod6Mf2eY8fHpLwyAtJp+YE7J3mWfpfc2XCc7uUKdAmezsEflhFbjWAmCelmRcDQ7vC1ezwPzLqm8BdSEEBpl4kqqLXPN2GoNaL3TjoZunCSvAajpyT6nbSQgE8g8O9ryoEqmPWTItP3f4vZd69llgA9A8M4UFKPbeTevYNKW42mf8MTc35CHBfZT1yLmAumPT6OtEEjQ9v9golErRZ+Td+U8kbAbD1kel3vCG2BoCqhVj17,iv:urTtVUdQyT233iClXxsN6MGPASw3XpbE7WbYwXGrtv4=,tag:rh1OrYYOKjGTH44io5+K5A==,type:str]
 sops:
   age:
     - recipient: age1v4hune8l5ecflr0cc4tp0xvnl9hjgvgs2qqlrdchwt7zpuncsyvqa62zht
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaYWxOYmhNRE85VTMzcjNw
-        ckRvaWxiUE04TGcwc1BmbllvUTFrMStVdWxJCnVrdzQxWjBaVDJIcVc4MHRrbXF6
-        NmpCamJkc29vSHN2bHk4dlZpa2t3TmcKLS0tIFlsbGkwSjJDTTBMbVBsNTM3bG5W
-        cDBMNzQzM2Y3Tk9TZm9CZnFCSXdnVlEKnGRoxCkwYh8dNght7W2ZYRWPRmplByZK
-        THV2PqeCspC+t9y/K6jv7QigFuz2ydI3sjIjkOqbFYj3kCoi4IFwBA==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVNEkrNHFwZEQ2MnBCRFFo
+        T0V3czVhN2JvQ2pkMGZJcHdIOVVKTWZYNVhnCnNvSTZ5SmVxenZ0aDRmajVJZmRG
+        azZHSjJlUkhyUGgrdVZhUjNMNzJZWFkKLS0tIFdJYmVHaDZLS0VEZmV4UFhVMUwv
+        V0dVQkg5cGljMzMvVmkwK2Q1Yi9tUk0KPtNmPADSMH6gXdQPx58bvV6oe9Hnn8J5
+        MA5/3Ri6AWsWszd0A7GxqvgEnauunue5O+mVmZB2ic0xTANAGPyDOg==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-10-20T14:17:26Z"
-  mac: ENC[AES256_GCM,data:FZybveJVNIQsQo+/o36PQQKbNGvX8p31SWDGsX3O8QT07ZJI2OW/pWchoO9+W7PSgdwOq0QmAtXg5YrZVTfcVZ7Oi67yoRrFDJZWOhrCPB96ZakYaH3ge3YAEJb4areyFy3KG3BHcwoLGfAfjD9Ir9vztX9xbZrqvfU6/q97mw0=,iv:zo3+A+/FpaIMP3KXmNAh8UB5kfgSdY26jZYRhMtCKis=,tag:OYLpKzo3UuHGr2wfZWPIiQ==,type:str]
+  lastmodified: "2026-10-20T14:17:30Z"
+  mac: ENC[AES256_GCM,data:tlRs20n5iTA/bZAezEhlh0mTOYDniP4PUfV+fgmQv2PPYkUQOUFBvXfhHja1MaBg/QEH18d4JnXtGfqjOWchUM4htWQRqFiMNsjBgmbuvKNb4QW8gATMWXmeQx73pvvCJvIqJRNLXvndWhwuY9/w+5hMXFEVflJbb6JBffesutU=,iv:a6ZNu+h2v1z+lhwxmXbnQlk501m/i9K2KxpYv/Z0HIE=,tag:vqu+ijCsGa34Eehc1y22GQ==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.12.1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tenant-im-apps-sops-age
+  namespace: flux-system
+stringData:
+  age.agekey: ENC[AES256_GCM,data:6aRtGHpLayNpKRyZuqZ8RrKnohVEHvaJasLw89P7c7ELVsLSyF3spaVpANWe5X9d27DGJBzVOHkgDEXKjBOn0bkMIyEOHEPfOIUr7tHTFL2mZxPFXoj5kFDresVFUzxpHHpsTYYufI8QYqGw42s10eXUWcQNfTUSOZxkhOHzJ2KUajDfwYOLK7khLc9kIMATWEP9iVXI6cIYRmKo4n642zj+k/SiQv9QLpB5i1HLnjV4cYXnVBM7k69LFyHO,iv:QUfQCQ0Q7Qe4gcxItvstLKVz0fpxbTSeSWv3yGWnJ1w=,tag:DkzhwsTxn1mHHcdYBrcTUA==,type:str]
+sops:
+  age:
+    - recipient: age1v4hune8l5ecflr0cc4tp0xvnl9hjgvgs2qqlrdchwt7zpuncsyvqa62zht
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVNEkrNHFwZEQ2MnBCRFFo
+        T0V3czVhN2JvQ2pkMGZJcHdIOVVKTWZYNVhnCnNvSTZ5SmVxenZ0aDRmajVJZmRG
+        azZHSjJlUkhyUGgrdVZhUjNMNzJZWFkKLS0tIFdJYmVHaDZLS0VEZmV4UFhVMUwv
+        V0dVQkg5cGljMzMvVmkwK2Q1Yi9tUk0KPtNmPADSMH6gXdQPx58bvV6oe9Hnn8J5
+        MA5/3Ri6AWsWszd0A7GxqvgEnauunue5O+mVmZB2ic0xTANAGPyDOg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-10-20T14:17:30Z"
+  mac: ENC[AES256_GCM,data:tlRs20n5iTA/bZAezEhlh0mTOYDniP4PUfV+fgmQv2PPYkUQOUFBvXfhHja1MaBg/QEH18d4JnXtGfqjOWchUM4htWQRqFiMNsjBgmbuvKNb4QW8gATMWXmeQx73pvvCJvIqJRNLXvndWhwuY9/w+5hMXFEVflJbb6JBffesutU=,iv:a6ZNu+h2v1z+lhwxmXbnQlk501m/i9K2KxpYv/Z0HIE=,tag:vqu+ijCsGa34Eehc1y22GQ==,type:str]
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
   version: 3.12.1
