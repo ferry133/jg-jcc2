@@ -16,5 +16,8 @@ metadata:
   labels:
     # Derived from grants in plugin.py, never declared (design D9). The tenant
     # cannot change it: tenant-admin has no verbs on Namespace.
-    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce: privileged
     jg.tenant: im-apps
+    # Read by daily-check row 28: privileged by grant, not by drift. A
+    # host_network tenant is NOT isolated (hostNetwork bypasses network policy).
+    jg.tenant-privileged: granted
