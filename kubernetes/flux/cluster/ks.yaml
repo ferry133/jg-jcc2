@@ -275,6 +275,24 @@ spec:
   dependsOn:
     - name: cluster-apps-base
 ---
+# ── GitRepository — the optional apps (private; per-cluster deploy key) ──────
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: jg-extras
+  namespace: flux-system
+spec:
+  interval: 1h
+  # Quoted for the reason the jg-base GitRepository gives.
+  url: "ssh://git@github.com/ferry133/jg-extras.git"
+  ref:
+    branch: "main"
+  # Rendered by components/sops/jg-extras-deploy-key.sops.yaml.j2 from this
+  # directory's jg-extras.deploy.key; keys identity / known_hosts, the same
+  # shape as the root sync's github-deploy-key.
+  secretRef:
+    name: jg-extras-deploy-key
+---
 # ── extras/default/mqtt ─────────────────────────────────────────────────────────
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -290,7 +308,7 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: jg-base
+    name: jg-extras
     namespace: flux-system
   postBuild:
     substituteFrom:
@@ -314,7 +332,7 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: jg-base
+    name: jg-extras
     namespace: flux-system
   postBuild:
     substituteFrom:
