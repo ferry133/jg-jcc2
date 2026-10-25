@@ -11,3 +11,5 @@ metadata:
     # TEST ONLY, hand-written (jg-base#188 acceptance on this throwaway; jgct does
     # not render the devices grant yet). A re-render removes it.
     jg.tenant-devices: granted
+    # TEST ONLY, hand-written (jg-base#187 acceptance). A re-render removes it.
+    jg.tenant-l2: granted
