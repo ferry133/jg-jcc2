@@ -1,7 +1,7 @@
 # TEST ONLY, hand-written (jg-base#187 acceptance on this throwaway; jgct does
 # not render NADs yet). One macvlan attachment on enp1s0 with a single static
-# LAN address. 10.9.9.240: no ARP reply in fleet-ops-65's 1–254 sweep
-# (2026-10-26); the UniFi DHCP pool was not read. No gateway/routes: the pod's
+# LAN address. 10.9.9.19: outside the UniFi DHCP pool (ferry133, 2026-10-26);
+# no ARP reply in fleet-ops-65's 1–254 sweep. No gateway/routes: the pod's
 # default route stays on Cilium, net1 only carries the LAN subnet.
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
@@ -18,6 +18,6 @@ spec:
       "mode": "bridge",
       "ipam": {
         "type": "static",
-        "addresses": [{"address": "10.9.9.240/24"}]
+        "addresses": [{"address": "10.9.9.19/24"}]
       }
     }
