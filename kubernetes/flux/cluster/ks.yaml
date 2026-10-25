@@ -214,6 +214,45 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
         name: claudecode-db
+    # TEST ONLY, hand-written (jg-base#188 acceptance; ferry133 has no USB serial
+    # adapter). Device plugin on, plus a serial-test class on the onboard UART
+    # /dev/ttyS1 (16550A, root:root 600 on the node). jg-base ships only
+    # ttyUSB*/ttyACM*. A re-render removes both patches.
+    - patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: generic-device-plugin
+          namespace: flux-system
+        spec:
+          suspend: false
+          path: ./kubernetes/apps/base/kube-system/generic-device-plugin/enabled
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        kind: Kustomization
+        name: generic-device-plugin
+    - patch: |-
+        - op: add
+          path: /spec/patches/-
+          value:
+            patch: |-
+              - op: add
+                path: /spec/template/spec/containers/0/args/-
+                value: --device
+              - op: add
+                path: /spec/template/spec/containers/0/args/-
+                value: |
+                  name: serial-test
+                  groups:
+                    - paths:
+                        - path: /dev/ttyS1
+            target:
+              kind: DaemonSet
+              name: generic-device-plugin
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        kind: Kustomization
+        name: generic-device-plugin
     # single node: one envoy replica per gateway, not two
     - patch: |-
         - op: add

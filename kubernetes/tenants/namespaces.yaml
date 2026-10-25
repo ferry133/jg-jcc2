@@ -8,3 +8,6 @@ metadata:
     # cannot change it: tenant-admin has no verbs on Namespace.
     pod-security.kubernetes.io/enforce: restricted
     jg.tenant: im-apps
+    # TEST ONLY, hand-written (jg-base#188 acceptance on this throwaway; jgct does
+    # not render the devices grant yet). A re-render removes it.
+    jg.tenant-devices: granted
