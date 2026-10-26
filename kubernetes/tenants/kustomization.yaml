@@ -11,8 +11,7 @@ resources:
   - rbac.yaml
   - quota.yaml
   - networkpolicy.yaml
+  - l2-networks.yaml
   - tenant-git-auth.sops.yaml
   - tenant-sops-age.sops.yaml
   - im-apps-write-key.sops.yaml
-  # TEST ONLY (jg-base#187 acceptance). A re-render removes it.
-  - l2-test-nad.yaml
