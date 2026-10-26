@@ -8,6 +8,9 @@ metadata:
     # cannot change it: tenant-admin has no verbs on Namespace.
     pod-security.kubernetes.io/enforce: restricted
     jg.tenant: im-apps
+    # Read by jg-base's tenant-device-requests admission policy (#188). Every
+    # namespace: the quota beside it bounds how many devices each may take.
+    jg.tenant-devices: granted
     # Read by jg-base's tenant-l2-networks admission policy (#187). Only the
     # first namespace: the NADs live there (l2-networks.yaml), and the policy
     # refuses a pod that names a NAD outside its own namespace.
