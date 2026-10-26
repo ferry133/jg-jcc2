@@ -22,7 +22,7 @@ spec:
     # Devices (jg-base#188), 0 without the grant. jg-base's
     # tenant-device-requests policy refuses the request on the namespace label;
     # this refuses it on the count.
-    requests.devic.es/serial: "1"
+    requests.devic.es/serial: "0"
 ---
 # Without default requests the quota above rejects every Pod that does not
 # state its own, which reads as the tenant's app being broken.

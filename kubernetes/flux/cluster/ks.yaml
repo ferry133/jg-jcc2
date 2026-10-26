@@ -214,7 +214,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
         name: multus
-    # enabled: an app_repos entry holds grants.devices, so its pods request devic.es/* resources
+    # disabled (empty path, so anything previously applied is pruned): no tenant holds grants.devices: an empty path so Flux prunes the device plugin, rather than a suspend that would leave it advertising
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -223,7 +223,7 @@ spec:
           namespace: flux-system
         spec:
           suspend: false
-          path: ./kubernetes/apps/base/kube-system/generic-device-plugin/enabled
+          path: ./kubernetes/apps/base/kube-system/generic-device-plugin/disabled
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
