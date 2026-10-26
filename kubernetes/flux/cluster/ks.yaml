@@ -258,6 +258,25 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
         name: envoy-gateway
+    # tenants: the gateway certificate also covers *.<tenant>.<domain>
+    - patch: |-
+        - op: add
+          path: /spec/patches/-
+          value:
+            patch: |-
+              - op: add
+                path: /spec/dnsNames/-
+                value: "*.im-apps.${SECRET_DOMAIN}"
+              - op: add
+                path: /spec/dnsNames/-
+                value: "*.homeauto.${SECRET_DOMAIN}"
+            target:
+              group: cert-manager.io
+              kind: Certificate
+      target:
+        group: kustomize.toolkit.fluxcd.io
+        kind: Kustomization
+        name: envoy-gateway
     # appliance: envoy-external always allocates from the probed pool
     - patch: |-
         - op: add
