@@ -662,6 +662,46 @@ import (
 	// private key. No *_expires twin: the expiry is in the certificate, and
 	// both the sidecar and the skill's `verify` read it from there.
 	talos_operator_config?: string & !=""
+	// The netdev-mcp sidecar on the base im (jgct#249, ferry133/jg-base#222):
+	// this cluster's UniFi console, read through a reader key and -- only with
+	// the second group -- written through a restricted operator account.
+	// Recording the console moves claude-code-im to jg-base's im/netdev path.
+	// Each group is all-or-nothing and the writer needs the reader; plugin.py
+	// enforces both, since a CUE condition on optional fields is not concrete
+	// (the claudecode_auth0_* note above).
+	//
+	// No format constraint on the credential fields: cue vet echoes the value
+	// it rejects. The URL, repo and probes are not secrets, so they get one.
+	// https only -- the server refuses http and has no switch to turn TLS
+	// verification off.
+	unifi_controller_url?: string & =~"^https://[^/\\s]+"
+	// Defaults to `default` in jg-base; set only for a non-default site.
+	unifi_site?:           string & !=""
+	// PEM: the console's certificate, or the CA that signed it. Not a secret,
+	// but it travels with the key in Secret unifi-reader.
+	unifi_ca_cert?:        string & !=""
+	// The console's Integration API key (read-only).
+	unifi_reader_key?:     string & !=""
+	// The write release. Set only where the root gates allow the operator:
+	// a throwaway cluster first; jcom after a reader-only week and ferry133's nod.
+	unifi_operator_user?:     string & !=""
+	unifi_operator_password?: string & !=""
+	// The private ticket repo the sidecar files a ticket in before each write,
+	// and a token that can only open, comment on and close issues there.
+	im_fac_ticket_repo?:  string & =~"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+	im_fac_ticket_token?: string & !=""
+	// Exactly three outside-reachability targets on three different paths
+	// (root D3: GitHub API, company MinIO, public DNS), each `https://host/path`
+	// or `host:port`. Per cluster, not a template constant: which MinIO answers
+	// depends on the site -- minio.janncot.com does not resolve from FAC1's LAN
+	// (split horizon), the same reason backup_r2_endpoint is per cluster.
+	netdev_outside_probes?: [#NetdevProbe, #NetdevProbe, #NetdevProbe]
+	// The base im's long-lived Home Assistant access token (jgct#237), minted
+	// inside HA for its `im` user by the fleet-ops skill `ha-im-credential`.
+	// Needs an app_repos entry with ha_app (plugin.py), and is meant to be
+	// added only after that HA runs. No format constraint: cue vet echoes the
+	// value it rejects.
+	ha_im_token?: string & !=""
 	// factory provisioning credentials (extras/factory/factory in jg-base).
 	// Only the cluster that hosts factory sets these -- jcom today. Every one is
 	// optional and renders empty elsewhere, which is what the consuming Secret
@@ -821,6 +861,7 @@ import (
 		// render a second Secret of the same name and one of the two keys
 		// would silently win.
 		agents: list.MaxItems(1) & [for r in app_repos if r.kind == "agent" {r.name}]
+		ha_apps: list.MaxItems(1) & [for r in app_repos if r.ha_app != _|_ {r.name}]
 	}
 
 	// A tenant is bound to `tenant-admin` in every namespace it declares, and
@@ -869,6 +910,11 @@ import (
 		}
 		namespaces: *[name] | [...#TenantNamespace] & list.MinItems(1)
 		branch?: string & !=""
+		// The label of this tenant's Home Assistant app, when it runs one
+		// (jgct#237): its public name is <ha_app>.<name>.<domain>, and the
+		// base im reaches HA's MCP endpoint there once ha_im_token is set.
+		// At most one tenant (the check below); plugin.py derives the URL.
+		ha_app?: =~"^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$"
 		// Defaults (4 / 8Gi / 50, design D4) are applied in plugin.py — a CUE
 		// default would never reach the template. Strings, because they go into
 		// a ResourceQuota verbatim and `4` vs `"4"` changes nothing there while
@@ -923,6 +969,11 @@ import (
 		l2?:           bool
 		devices?:      {[=~"^[a-z0-9-]+$"]: int & >0}
 	}
+
+	// One netdev_outside_probes target: `https://host/path` or `host:port`
+	// (jg-base#222, the server's contract). No commas -- jg-base receives the
+	// three joined by commas.
+	#NetdevProbe: =~"^(https://[^/\\s,]+/[^\\s,]*|[A-Za-z0-9.-]+:[0-9]{1,5})$"
 }
 
 #Config
