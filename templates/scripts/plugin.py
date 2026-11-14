@@ -231,12 +231,13 @@ def extras_deploy_key(file_path: str = 'jg-extras.deploy.key') -> str:
 # ferry133/jg-base#222): im plus the netdev-mcp sidecar, which reads this
 # cluster's UniFi console. jg-base's contract is in
 # kubernetes/apps/base/claudecode/claude-code/im/netdev/netdev-mcp.yaml: three
-# optional Secrets in `claudecode` (unifi-reader: ca.crt + reader-key;
+# optional Secrets in `claudecode` (unifi-reader: ca.crt + reader, two lines;
 # unifi-operator: operator, two lines; im-fac-ticket: token) and four
 # cluster-secrets values.
 #
 # Two groups, and each is all-or-nothing:
-#   reader  unifi_controller_url + unifi_ca_cert + unifi_reader_key
+#   reader  unifi_controller_url + unifi_ca_cert + unifi_reader_user +
+#           unifi_reader_password (a View Only local account, jgct#261)
 #   writer  unifi_operator_user + unifi_operator_password +
 #           im_fac_ticket_repo + im_fac_ticket_token + netdev_outside_probes
 # The server registers write tools only when every writer input is usable, so
@@ -248,7 +249,8 @@ def extras_deploy_key(file_path: str = 'jg-extras.deploy.key') -> str:
 #
 # The recorded console is what selects the path: no separate on/off switch,
 # because two fields for one fact diverge (base_repo_dir's reasoning).
-NETDEV_READER = ('unifi_controller_url', 'unifi_ca_cert', 'unifi_reader_key')
+NETDEV_READER = ('unifi_controller_url', 'unifi_ca_cert', 'unifi_reader_user',
+                 'unifi_reader_password')
 NETDEV_WRITER = ('unifi_operator_user', 'unifi_operator_password',
                  'im_fac_ticket_repo', 'im_fac_ticket_token',
                  'netdev_outside_probes')
@@ -273,9 +275,10 @@ def netdev_config(data: dict) -> None:
         missing = [f for f in NETDEV_READER if f not in reader]
         raise KeyError(
             f"cluster.yaml records a UniFi console but is missing "
-            f"{', '.join(missing)}. All three are needed for the netdev-mcp "
+            f"{', '.join(missing)}. All four are needed for the netdev-mcp "
             "reader: the URL, the console's certificate (or its CA) as PEM, "
-            "and the Integration API key.")
+            "and the user and password of a View Only local account on the "
+            "console (not an API key: the console has no read-only one).")
     if writer and len(writer) != len(NETDEV_WRITER):
         missing = [f for f in NETDEV_WRITER if f not in writer]
         raise KeyError(
@@ -298,7 +301,7 @@ def netdev_config(data: dict) -> None:
         raise ValueError(
             "unifi_ca_cert has no '-----BEGIN CERTIFICATE-----' line: it must "
             "be the console's certificate or its CA, as PEM.")
-    single = ['unifi_reader_key']
+    single = ['unifi_reader_user', 'unifi_reader_password']
     if writer:
         single += ['unifi_operator_user', 'unifi_operator_password',
                    'im_fac_ticket_token']
@@ -306,8 +309,9 @@ def netdev_config(data: dict) -> None:
     if multi:
         raise ValueError(
             f"{', '.join(multi)} span more than one line; each is a single "
-            "value. (unifi-operator's file is user and password on two lines, "
-            "and the template builds it from the two fields.)")
+            "value. (unifi-reader's and unifi-operator's files are user and "
+            "password on two lines, and the template builds each from its two "
+            "fields.)")
     if writer:
         probes = data['netdev_outside_probes']
         if len(probes) != 3 or len(set(probes)) != 3:
@@ -1456,13 +1460,38 @@ class Plugin(makejinja.plugin.Plugin):
         # lb_pool_blocks because the LAN-IP checks read it. Absent and `[]` stay
         # indistinguishable to the templates, which check-tenant-render.py asserts.
         data['app_repos'] = app_repos(data)
-        # Whether local-path should claim the cluster-default StorageClass.
-        # nfs-subdir claims it whenever it is running, and it only runs on an
-        # NFS cluster, so the two never collide.
-        data.setdefault(
-            'local_path_is_default',
-            'true' if data.get('storage_backend') != 'nfs' else 'false',
-        )
+        # Which class is the cluster default (ferry133 2026-11-01, jgct#257).
+        # A PVC that names no class is app state nobody thought about, and the
+        # rule is that app state lives on the block tier. Until #257,
+        # nfs-subdir claimed the default on an NFS cluster, so "did not choose"
+        # meant "put it on the NAS". sc-nas is now used only where it is named.
+        #
+        #   nfs, db_storage_class longhorn  -> longhorn (the block tier this
+        #                                      cluster chose; it does not pin)
+        #   nfs, anything else              -> local-path
+        #   local-path / replicated         -> local-path, unchanged
+        #
+        # local-path is a base app (EXTRAS_NOW_BASE), so it runs everywhere.
+        # On replicated, Longhorn stays non-default; that is jg-base's comment
+        # and out of #257's scope.
+        #
+        # NAS_IS_DEFAULT and LONGHORN_IS_DEFAULT are rendered only on an NFS
+        # cluster. jg-base reads them as ${NAS_IS_DEFAULT:=true} and
+        # ${LONGHORN_IS_DEFAULT:=false}, so a cluster-secrets rendered before
+        # #257 keeps sc-nas as its one default, and the first re-render
+        # flips all three keys in one commit. That is why jg-base#242
+        # (2a4f3d0) must reach each cluster's `gitrepository/jg-base`
+        # artifact BEFORE the re-render is pushed; reaching main is not
+        # enough. The re-render reconciles on push, but jg-base arrives on
+        # its interval. Against an older artifact the false is ignored and
+        # two classes are default: jcom had two from 18:30:35 to 18:31:26 on
+        # 2026-11-10 until `flux reconcile source git jg-base` (measured by
+        # fleet-ops-d9 on jgct#257).
+        _db = data.get('db_storage_class')
+        _lh_default = data.get('storage_backend') == 'nfs' and _db == 'longhorn'
+        data.setdefault('local_path_is_default', 'false' if _lh_default else 'true')
+        data.setdefault('longhorn_is_default', 'true' if _lh_default else 'false')
+        data.setdefault('nas_is_default', 'false')
         # Whether Longhorn is installed. `storage_backend: "replicated"` implies
         # it, but a NAS-backed cluster can ask for it too — the NAS is right for
         # bulk and wrong for a database, and Longhorn is the one block class that

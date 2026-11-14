@@ -35,9 +35,9 @@
 deployment_profile: "CHOOSE-ONE-appliance-full"
 
 # ── Storage backend ───────────────────────────────────────────────────────────
-# (REQUIRED) Which storage class is the cluster default — what bulk media and
-# file shares land on. Databases are block-backed regardless; this axis does not
-# move them.
+# (REQUIRED) Which storage class bulk media and file shares land on
+# (DEFAULT_STORAGE_CLASS). Databases are block-backed regardless; this axis does
+# not move them.
 #   "local-path"  node-local disk; no NAS needed
 #   "nfs"         NAS-backed; requires nas_server / nas_path below
 #   "replicated"  Longhorn, as the bulk tier as well. To install Longhorn while
@@ -45,9 +45,14 @@ deployment_profile: "CHOOSE-ONE-appliance-full"
 #                 replicated_storage below instead.
 # Forced to "local-path" under the appliance profile.
 #
-# This picks the default, not which provisioners exist: every cluster installs
+# This picks the bulk tier, not which provisioners exist: every cluster installs
 # local-path-provisioner, because a NAS is not somewhere a database can live.
 # Choosing "nfs" additionally enables the NFS provisioner.
+#
+# It does not make the NAS the Kubernetes default StorageClass (jgct#257). A PVC
+# that names no class is app state, and app state belongs on the block tier, so
+# it lands on db_storage_class when that is "longhorn", and on local-path
+# otherwise. sc-nas is used only where a manifest names it.
 # ⚠️ 留著不註解是刻意的。註解掉會讓 `cue vet` 多一則
 # `unresolved disjunction "local-path" | "nfs" | "replicated"`——那是 schema 內部的
 # 求值錯誤，指不出任何一個你寫過的欄位。appliance 會強制成 "local-path" 並與這裡
@@ -744,7 +749,7 @@ cluster_name: "xxxxxx"
 
 # ── The site's UniFi console (optional) — netdev-mcp on the base im ───────────
 # Gives the agent a read view of THIS site's UniFi network (devices, clients,
-# networks, Wi-Fi), through its own sidecar next to the terminal: the key
+# networks, Wi-Fi), through its own sidecar next to the terminal: the login
 # below is mounted there and nowhere else -- not in the terminal, which is the
 # customer's root shell. Leave the whole section commented out on a site
 # without a UniFi console; nothing changes for such a cluster.
@@ -753,13 +758,18 @@ cluster_name: "xxxxxx"
 # (the same release plus the sidecar). Remove these fields again and it
 # returns to `im/enabled`, deleting the sidecar's snapshot volume with it.
 #
-# Reader -- all three, or none:
+# Reader -- all four, or none. The reader is a LOCAL account on the console
+# with the View Only role: in UniFi OS, Admins & Users -> create a local
+# user (not a UI.com account), Network: View, every other app: None. It is
+# NOT an API key: the console has no read-only key -- a key carries its
+# creator's rights, and the View Only account cannot create one.
 # unifi_controller_url: "https://10.9.1.1"   # https only; the sidecar has no http mode
 # unifi_ca_cert: |                           # the console's certificate, or its CA, as PEM
 #   -----BEGIN CERTIFICATE-----
 #   ...
 #   -----END CERTIFICATE-----
-# unifi_reader_key: ""                       # the console's Integration API key (read-only)
+# unifi_reader_user: ""                      # that View Only local account's username
+# unifi_reader_password: ""                  # and its password
 # unifi_site: "default"                      # only for a site other than `default`
 #
 # Writer -- the agent may also CHANGE the network, after the person at the
@@ -1104,6 +1114,14 @@ cluster_name: "xxxxxx"
 #                   scheduled only onto a node that has one plugged in.
 #                   Turning it on also switches the device plugin on for the
 #                   whole cluster.
+#     public        the tenant's web pages may be reached from the internet
+#                   (an HTTPRoute on envoy-external). Without it they are
+#                   for the LAN only: jg-base's admission policy (jg-base#235)
+#                   admits a tenant route on envoy-internal and refuses any
+#                   other parentRef. Until that policy ships, nothing refuses.
+#                   ⚠️ Not measured: Cloudflare's certificate for the tenant's
+#                   second-level names (<app>.<tenant>.<domain>) may need its
+#                   own arrangement before public works end to end.
 #   lan_ip_range  {start, stop}: at least `lan_ip` addresses, outside the
 #                 shared LoadBalancer pool and every other tenant's range.
 #                 `task configure` refuses an overlap, naming both ranges.

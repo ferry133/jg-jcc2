@@ -186,7 +186,7 @@ spec:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
         name: lan-address-probe
-    # enabled: the default im.<domain> web terminal from jg-base, gated on this cluster accepting the Auth0 OIDC front
+    # enabled: the default im.<domain> web terminal from jg-base with the netdev-mcp sidecar, because this cluster records a UniFi console
     - patch: |-
         apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
@@ -195,7 +195,7 @@ spec:
           namespace: flux-system
         spec:
           suspend: false
-          path: ./kubernetes/apps/base/claudecode/claude-code/im/enabled
+          path: ./kubernetes/apps/base/claudecode/claude-code/im/netdev
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
@@ -267,9 +267,6 @@ spec:
               - op: add
                 path: /spec/dnsNames/-
                 value: "*.im-apps.${SECRET_DOMAIN}"
-              - op: add
-                path: /spec/dnsNames/-
-                value: "*.homeauto.${SECRET_DOMAIN}"
             target:
               group: cert-manager.io
               kind: Certificate
@@ -391,14 +388,14 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: claude-code-ha-mcp-secret
+  name: claude-code-netdev-secrets
   namespace: flux-system
 spec:
   decryption:
     provider: sops
   interval: 1h
   retryInterval: 5m
-  path: ./kubernetes/ha-mcp
+  path: ./kubernetes/netdev
   prune: true
   sourceRef:
     kind: GitRepository
@@ -468,51 +465,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: tenant-im-apps
-    namespace: flux-system
-  dependsOn:
-    - name: cluster-tenants
----
-# ── tenant homeauto (vendor: ferry133/jg-jcc2-homeauto) ──
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tenant-homeauto
-  namespace: flux-system
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
-metadata:
-  name: tenant-homeauto
-  namespace: flux-system
-spec:
-  interval: 1h
-  url: "ssh://git@github.com/ferry133/jg-jcc2-homeauto.git"
-  ref:
-    # Quoted for the reason the jg-base GitRepository above gives.
-    branch: "main"
-  # Read-only deploy key, rendered by cluster-tenants (task 3.4), same keys as
-  # the root sync's github-deploy-key: identity, known_hosts.
-  secretRef:
-    name: tenant-homeauto-git-auth
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: tenant-homeauto
-  namespace: flux-system
-spec:
-  serviceAccountName: tenant-homeauto
-  decryption:
-    provider: sops
-    secretRef:
-      name: tenant-homeauto-sops-age
-  deletionPolicy: WaitForTermination
-  interval: 1h
-  path: ./
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: tenant-homeauto
     namespace: flux-system
   dependsOn:
     - name: cluster-tenants
