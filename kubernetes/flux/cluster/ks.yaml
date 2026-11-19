@@ -57,8 +57,8 @@ spec:
   # first two both reached a cluster before anyone noticed.
   url: "https://github.com/ferry133/jg-base"
   ref:
-    # HAND-WRITTEN, temporary: measuring jg-base#254 on this throwaway cluster — fleet-ops-98 [047e9c] 2026-11-20. Goes back to "main".
-    branch: "fix/253-dns-over-tcp"
+    # HAND-WRITTEN, temporary: measuring jg-base#255 on this throwaway cluster — fleet-ops-98 [047e9c] 2026-11-20. Goes back to "main".
+    branch: "fix/253-k8s-gateway-tcp"
 ---
 # ── Base Kustomization — installed on every cluster ───────────────────────────
 apiVersion: kustomize.toolkit.fluxcd.io/v1
