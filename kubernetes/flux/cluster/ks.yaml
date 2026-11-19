@@ -196,6 +196,20 @@ spec:
         spec:
           suspend: false
           path: ./kubernetes/apps/base/claudecode/claude-code/im/netdev
+          # HAND-WRITTEN, not rendered (task configure will drop it): agent-delegation-envelope section 9,
+          # first attach of the chamber component on this throwaway cluster — fleet-ops-98 [047e9c] 2026-11-20
+          components:
+            - ../chamber
+          patches:
+            - target:
+                kind: HelmRelease
+                name: im
+              patch: |
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
