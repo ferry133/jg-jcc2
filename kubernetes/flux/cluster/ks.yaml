@@ -205,11 +205,13 @@ spec:
                 kind: HelmRelease
                 name: im
               patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
-                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
-                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
-                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "9e1471f@sha256:27a4b2b73fef921a9de77286d3d28db06a111cbcec345ef4cfcc71fe129845ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "761d558@sha256:4c5e394cca419c80e31007d558a046e4285618324ea027f3249ceaebe78652ff"}
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "761d558@sha256:4c5e394cca419c80e31007d558a046e4285618324ea027f3249ceaebe78652ff"}
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "761d558@sha256:4c5e394cca419c80e31007d558a046e4285618324ea027f3249ceaebe78652ff"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "761d558@sha256:4c5e394cca419c80e31007d558a046e4285618324ea027f3249ceaebe78652ff"}
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "761d558@sha256:4c5e394cca419c80e31007d558a046e4285618324ea027f3249ceaebe78652ff"}
+                - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
