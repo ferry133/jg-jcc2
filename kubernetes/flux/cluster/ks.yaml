@@ -205,11 +205,6 @@ spec:
                 kind: HelmRelease
                 name: im
               patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "cb36e6c@sha256:975c5aa4c88a0b8237f970f4ae5632b486eab92153263184f7f48d93588539e2"}
-                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "cb36e6c@sha256:975c5aa4c88a0b8237f970f4ae5632b486eab92153263184f7f48d93588539e2"}
-                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "cb36e6c@sha256:975c5aa4c88a0b8237f970f4ae5632b486eab92153263184f7f48d93588539e2"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "cb36e6c@sha256:975c5aa4c88a0b8237f970f4ae5632b486eab92153263184f7f48d93588539e2"}
-                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "cb36e6c@sha256:975c5aa4c88a0b8237f970f4ae5632b486eab92153263184f7f48d93588539e2"}
                 - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
