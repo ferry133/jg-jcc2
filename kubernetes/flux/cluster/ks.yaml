@@ -57,8 +57,7 @@ spec:
   # first two both reached a cluster before anyone noticed.
   url: "https://github.com/ferry133/jg-base"
   ref:
-    # HAND-WRITTEN, temporary: measuring jg-base PR#257 (jg-base#256) with k8scc#100 on this throwaway cluster — fleet-ops-4c [50fff3] 2026-11-21. Goes back to "main".
-    branch: "fix/256-chamber-state-dir"
+    branch: "main"
 ---
 # ── Base Kustomization — installed on every cluster ───────────────────────────
 apiVersion: kustomize.toolkit.fluxcd.io/v1
