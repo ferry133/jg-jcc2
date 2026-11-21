@@ -205,11 +205,11 @@ spec:
                 kind: HelmRelease
                 name: im
               patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "55e061a@sha256:b0e9b30a80a0f5ad9a084134c069f6a2eb0ba1af6566a5445973deb981d60b04"}
-                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "55e061a@sha256:b0e9b30a80a0f5ad9a084134c069f6a2eb0ba1af6566a5445973deb981d60b04"}
-                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "55e061a@sha256:b0e9b30a80a0f5ad9a084134c069f6a2eb0ba1af6566a5445973deb981d60b04"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "55e061a@sha256:b0e9b30a80a0f5ad9a084134c069f6a2eb0ba1af6566a5445973deb981d60b04"}
-                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "55e061a@sha256:b0e9b30a80a0f5ad9a084134c069f6a2eb0ba1af6566a5445973deb981d60b04"}
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "bca81b3@sha256:1d0dfe95b0494cc67f2fcd35e41acf0ed563deb593aa371f4ad31f808bbd66ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "bca81b3@sha256:1d0dfe95b0494cc67f2fcd35e41acf0ed563deb593aa371f4ad31f808bbd66ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "bca81b3@sha256:1d0dfe95b0494cc67f2fcd35e41acf0ed563deb593aa371f4ad31f808bbd66ea"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "bca81b3@sha256:1d0dfe95b0494cc67f2fcd35e41acf0ed563deb593aa371f4ad31f808bbd66ea"}
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "bca81b3@sha256:1d0dfe95b0494cc67f2fcd35e41acf0ed563deb593aa371f4ad31f808bbd66ea"}
                 - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
