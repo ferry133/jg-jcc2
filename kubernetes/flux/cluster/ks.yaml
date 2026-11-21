@@ -57,7 +57,8 @@ spec:
   # first two both reached a cluster before anyone noticed.
   url: "https://github.com/ferry133/jg-base"
   ref:
-    branch: "main"
+    # HAND-WRITTEN, temporary: measuring jg-base PR#257 (jg-base#256) with k8scc#100 on this throwaway cluster — fleet-ops-4c [50fff3] 2026-11-21. Goes back to "main".
+    branch: "fix/256-chamber-state-dir"
 ---
 # ── Base Kustomization — installed on every cluster ───────────────────────────
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -205,11 +206,11 @@ spec:
                 kind: HelmRelease
                 name: im
               patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "708a607@sha256:dfac527715984d5f23053ffba99b50aa2bf5886345cc9ad7b76f12626862437a"}
-                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "708a607@sha256:dfac527715984d5f23053ffba99b50aa2bf5886345cc9ad7b76f12626862437a"}
-                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "708a607@sha256:dfac527715984d5f23053ffba99b50aa2bf5886345cc9ad7b76f12626862437a"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "708a607@sha256:dfac527715984d5f23053ffba99b50aa2bf5886345cc9ad7b76f12626862437a"}
-                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "708a607@sha256:dfac527715984d5f23053ffba99b50aa2bf5886345cc9ad7b76f12626862437a"}
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "adf8a09@sha256:4f725307d713e038cf389f5ff6f6adb074e85e8833c03c74f7762ee1aeb56940"}
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "adf8a09@sha256:4f725307d713e038cf389f5ff6f6adb074e85e8833c03c74f7762ee1aeb56940"}
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "adf8a09@sha256:4f725307d713e038cf389f5ff6f6adb074e85e8833c03c74f7762ee1aeb56940"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "adf8a09@sha256:4f725307d713e038cf389f5ff6f6adb074e85e8833c03c74f7762ee1aeb56940"}
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "adf8a09@sha256:4f725307d713e038cf389f5ff6f6adb074e85e8833c03c74f7762ee1aeb56940"}
                 - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
