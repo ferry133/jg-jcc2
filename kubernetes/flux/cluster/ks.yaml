@@ -351,15 +351,14 @@ spec:
   # Quoted for the reason the jg-base GitRepository gives.
   url: "ssh://git@github.com/ferry133/jg-extras.git"
   ref:
-    # HAND-WRITTEN (throwaway test, jg-extras#27 acceptance, fleet-ops-4c [50fff3]): PR branch, 0 behind main. Back to main after merge.
-    branch: "feat/26-chamber"
+    branch: "main"
   # Rendered by components/sops/jg-extras-deploy-key.sops.yaml.j2 from this
   # directory's jg-extras.deploy.key; keys identity / known_hosts, the same
   # shape as the root sync's github-deploy-key.
   secretRef:
     name: jg-extras-deploy-key
 ---
-# ── extras/chamber/chamber — HAND-WRITTEN (jg-extras#27 acceptance; what `extras: [chamber/chamber]` would render) ──
+# ── extras/chamber/chamber — HAND-WRITTEN (jg-extras#27 merged dec79b0; what `extras: [chamber/chamber]` would render; `task configure` drops it) ──
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
