@@ -196,6 +196,8 @@ spec:
         spec:
           suspend: false
           path: ./kubernetes/apps/base/claudecode/claude-code/im/netdev
+          components:
+            - ../chamber
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
