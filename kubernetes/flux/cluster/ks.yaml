@@ -195,7 +195,7 @@ spec:
           namespace: flux-system
         spec:
           suspend: false
-          path: ./kubernetes/apps/base/claudecode/claude-code/im/netdev
+          path: ./kubernetes/apps/base/claudecode/claude-code/im/disabled
           components:
             - ../chamber
       target:
