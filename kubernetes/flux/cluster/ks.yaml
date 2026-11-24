@@ -207,6 +207,12 @@ spec:
               patch: |
                 - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
+                # STAGING, remove after jg-base#271 merges: image 17ce78a on this cluster first (jg-base-d4's request, 2026-11-25) — fleet-ops-02 [e3795b]
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "17ce78a@sha256:2987cae2d36583bed1560b5693476767534b0693b32f7832af54fb43edcb6f41"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "17ce78a@sha256:2987cae2d36583bed1560b5693476767534b0693b32f7832af54fb43edcb6f41"}
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "17ce78a@sha256:2987cae2d36583bed1560b5693476767534b0693b32f7832af54fb43edcb6f41"}
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "17ce78a@sha256:2987cae2d36583bed1560b5693476767534b0693b32f7832af54fb43edcb6f41"}
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "17ce78a@sha256:2987cae2d36583bed1560b5693476767534b0693b32f7832af54fb43edcb6f41"}
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
             # not in jg-base). A public key is not a secret. The original list lives elsewhere.
             - target:
