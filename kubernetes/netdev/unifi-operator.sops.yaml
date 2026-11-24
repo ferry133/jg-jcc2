@@ -1,0 +1,26 @@
+# The restricted local admin the netdev-mcp writer signs in as. jg-base's
+# UNIFI_OPERATOR_FILE is this one key: user on the first line, password on the
+# second.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: unifi-operator
+  namespace: claudecode
+stringData:
+  operator: ENC[AES256_GCM,data:zcp79nR54CTI6Rc0zRnOy4KOkNA7LvTetnkXVdBmHTkGFsyRqKs=,iv:z2eLNR5xzksq0w6t7xWd5ZkY/GAJqr931BCuK8yLoAc=,tag:WBga6JdN4ahrrPbCxYkh+w==,type:str]
+sops:
+  age:
+    - recipient: age1v4hune8l5ecflr0cc4tp0xvnl9hjgvgs2qqlrdchwt7zpuncsyvqa62zht
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSByQXpZZmgvWUorMTRxVmF5
+        NERaTStSWUl0WWp5MmZZOTBYR1g2Q3h3a0RvCnE4WGViK0NWL1l6S2VVL1pOK1ZM
+        QU9nZVJHS2NvRFZvZEhsS09mWmpIQWsKLS0tIFFMTFdVVTY5NGIzSW5nQWR0NVlu
+        K3FNYW1QUVRUK3RZMFdBaHNLdXBVQ0EKfVM7skapIELYgY3ozX0twT9I+G4Cao0o
+        mKxusHSXWrKjgTHgaZ5h4fPqBZOmCI6P79zbEPoP2jmTKx0Ek9vCOQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-24T15:13:47Z"
+  mac: ENC[AES256_GCM,data:qrqtlp5nCPmGRasBX/OuNV0m1rjhbDAdAJGPVyCEuLIP3abrUA4wmW+2StgoKcxyhdCuScafDSaOVNbYGjIaz4kvBrgsoq6TgM4bi0JhTTWBu2nT51E8NfuDaHq1rMbzuuki50rS/K/G0pUrHCxBuFi9+huNZj09xNKbNqZmBYk=,iv:vea3qAf6MiAnJ5L0cWOEy/Hzr41x5m1QceEZPBQFugs=,tag:169F1zZfQMgdZWIpMNTA0w==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.12.1

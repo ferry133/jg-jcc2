@@ -1,0 +1,26 @@
+# The token the netdev-mcp writer files its tickets with, scoped to
+# im_fac_ticket_repo only (open, comment, close). A file, never env: jg-base's
+# IM_FAC_TICKET_TOKEN_FILE points at this key.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: im-fac-ticket
+  namespace: claudecode
+stringData:
+  token: ENC[AES256_GCM,data:ESDBcc/HqFMku6bRxvqEQp76aqBiVlfR6kO3JSL2sP/VeJNO5rak4NXMk7cYZQH94worEn9eVKqB9xOVAb+egSVuSs++M0eh5a6tSohEditHMe1xihJUeJVjomGA,iv:UC6KwPg+HaKg8ZLkA3SOOABBtRSx1EsZgUEPsgqjgXo=,tag:uuSyykMDQNgvlo2nool9FA==,type:str]
+sops:
+  age:
+    - recipient: age1v4hune8l5ecflr0cc4tp0xvnl9hjgvgs2qqlrdchwt7zpuncsyvqa62zht
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBCVWVPbXlvSWhYYkNXeUZH
+        aVdjUGZhVVRpdWlxOE9RMTN6ODlscmg5RGlBCkl5bFRWdWc4bXMyQVlzSkRrUnEw
+        YlZNL2Z0Z096NDlsbG5UVUtCQ1g0R0UKLS0tIG1CQzU1SW1uRVgyZEdibzRlT1dk
+        TFdrbCtPWXJmZG9aNU9XaHJSZERrNFEKCF7fhiSzT/3QEBQIKzx6SMyIexiUi07O
+        SsD8qGfvlCOX+jXPoO/uDgDBRnzyXZZ4MuN2tHa0eNdOm4V/idfdKw==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-11-24T15:13:47Z"
+  mac: ENC[AES256_GCM,data:EcEe31Ja5MsEAxATIJ+B8q6uSCKP/cQdtB614jDSynZPZ5NiOHz9yNywlEusDPuJfSjzAN9b4wynw6p982Dg21Iznt123sPGiel0meZ+RSZP32zfeomP0KF3YtigePLy/BL5A6hvQrk4bqNkwCpzxq2kat61EldADeJi8cPObt4=,iv:Ft9JelEnQdsFIZmTkFx+ydbIHHHbc6KAtZ8/9p6KUvs=,tag:pdJjIkHXP4gSr2pLN1nw8w==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.12.1
