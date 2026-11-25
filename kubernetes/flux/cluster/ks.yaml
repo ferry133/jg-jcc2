@@ -209,6 +209,12 @@ spec:
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
                 # k8scc#70 tasks 1.2/4.3 (ferry133 2026-11-25, asked by k8scc-bf [97703c]): keep a session without anyone at the ttyd. This throwaway cluster only. — fleet-ops-02 [e3795b]
                 - {op: add, path: /spec/values/controllers/im/containers/app/env/SESSION_KEEP, value: "1"}
+                # STAGE-13d8a32 TEMPORARY: image 13d8a32 (k8scc#145, settle before the alive signal) on this throwaway cluster for the in-pod reading jg-base-d4 asked for before jg-base#279; remove when #279 merges — fleet-ops-02 [e3795b]
+                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "13d8a32@sha256:3d94a354584393bf595f8eefef0ae182628d7bae486fc4a3f83f7e937d9da13b"}  # STAGE-13d8a32
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "13d8a32@sha256:3d94a354584393bf595f8eefef0ae182628d7bae486fc4a3f83f7e937d9da13b"}  # STAGE-13d8a32
+                - {op: replace, path: /spec/values/controllers/im/containers/netdev-mcp/image/tag, value: "13d8a32@sha256:3d94a354584393bf595f8eefef0ae182628d7bae486fc4a3f83f7e937d9da13b"}  # STAGE-13d8a32
+                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "13d8a32@sha256:3d94a354584393bf595f8eefef0ae182628d7bae486fc4a3f83f7e937d9da13b"}  # STAGE-13d8a32
+                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "13d8a32@sha256:3d94a354584393bf595f8eefef0ae182628d7bae486fc4a3f83f7e937d9da13b"}  # STAGE-13d8a32
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
             # not in jg-base). A public key is not a secret. The original list lives elsewhere.
             - target:
