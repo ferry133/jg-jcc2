@@ -196,27 +196,6 @@ spec:
         spec:
           suspend: false
           path: ./kubernetes/apps/base/claudecode/claude-code/im/netdev
-          # HAND-WRITTEN, not rendered (task configure will drop it): agent-delegation-envelope section 9,
-          # first attach of the chamber component on this throwaway cluster — fleet-ops-98 [047e9c] 2026-11-20
-          components:
-            - ../chamber
-          patches:
-            - target:
-                kind: HelmRelease
-                name: im
-              patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
-            # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
-            # not in jg-base). A public key is not a secret. The original list lives elsewhere.
-            - target:
-                kind: ConfigMap
-                name: im-chamber-signers
-              patch: |
-                - op: replace
-                  path: /data/allowed_signers
-                  value: |
-                    ferry133 namespaces="chamber-directive" sk-ecdsa-sha2-nistp256@openssh.com AAAAInNrLWVjZHNhLXNoYTItbmlzdHAyNTZAb3BlbnNzaC5jb20AAAAIbmlzdHAyNTYAAABBBC1KNeH2wHs03DqoVh37aP8RCbWR43FTybofRzWGXPeotHwphlOdTF1lRTDn/RYVxuuHVTxOj7IGnhOuoU+rlbsAAAAEc3NoOg== ssh:
       target:
         group: kustomize.toolkit.fluxcd.io
         kind: Kustomization
