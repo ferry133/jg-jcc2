@@ -205,8 +205,8 @@ spec:
                 kind: HelmRelease
                 name: im
               patch: |
-                - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "observe"}
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "observe"}
+                - {op: replace, path: /spec/values/controllers/im/containers/app/env/CHAMBER_MODE, value: "deliver"}
+                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
                 # k8scc#70 tasks 1.2/4.3 (ferry133 2026-11-25, asked by k8scc-bf [97703c]): keep a session without anyone at the ttyd. This throwaway cluster only. — fleet-ops-02 [e3795b]
                 - {op: add, path: /spec/values/controllers/im/containers/app/env/SESSION_KEEP, value: "1"}
                 # TEMPORARY, this throwaway cluster only: staging the im pin of jg-base PR #274 (550287e) before it merges. Remove once jg-base main carries it. — fleet-ops-02 [e3795b] 2026-11-25
