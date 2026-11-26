@@ -7,20 +7,20 @@ metadata:
   name: unifi-operator
   namespace: claudecode
 stringData:
-  operator: ENC[AES256_GCM,data:zcp79nR54CTI6Rc0zRnOy4KOkNA7LvTetnkXVdBmHTkGFsyRqKs=,iv:z2eLNR5xzksq0w6t7xWd5ZkY/GAJqr931BCuK8yLoAc=,tag:WBga6JdN4ahrrPbCxYkh+w==,type:str]
+  operator: ENC[AES256_GCM,data:r6lSUvcN1xIyeV5/HSj6tTcAtjKDrp+s8s2ZIbVbYg==,iv:n5S0nv7vGBUMTdIKe2D44WhAqPKdo8JsUzBAHV4sZBM=,tag:xEH63Ec3NS1bFDKSoYLZDQ==,type:str]
 sops:
   age:
     - recipient: age1v4hune8l5ecflr0cc4tp0xvnl9hjgvgs2qqlrdchwt7zpuncsyvqa62zht
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSByQXpZZmgvWUorMTRxVmF5
-        NERaTStSWUl0WWp5MmZZOTBYR1g2Q3h3a0RvCnE4WGViK0NWL1l6S2VVL1pOK1ZM
-        QU9nZVJHS2NvRFZvZEhsS09mWmpIQWsKLS0tIFFMTFdVVTY5NGIzSW5nQWR0NVlu
-        K3FNYW1QUVRUK3RZMFdBaHNLdXBVQ0EKfVM7skapIELYgY3ozX0twT9I+G4Cao0o
-        mKxusHSXWrKjgTHgaZ5h4fPqBZOmCI6P79zbEPoP2jmTKx0Ek9vCOQ==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBZOXFuTDRsZmU0WG4zdE95
+        U29jcys3OXNXYlp0SkVMemJmMDdlWjlab2p3CmNVZ3hERVVCZHRTa1lHNVlNRExl
+        ME9BOFB4UTVpNU9PRVY1WXkrWXJISmMKLS0tIGYrblFidGFDbUJiRkw2UUJFOWFj
+        WGVMZ2xqNnNRaE5FWkdYd3d4R2crTUkKUZqnXC0QrmZPepSIAyVD52vNLl0T8NMe
+        fvKtDCGw4CyrZhLCnuM9PTFqBqzrVuQrfJ67zt5MkYzRTxndnPiyTQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-11-24T15:13:47Z"
-  mac: ENC[AES256_GCM,data:qrqtlp5nCPmGRasBX/OuNV0m1rjhbDAdAJGPVyCEuLIP3abrUA4wmW+2StgoKcxyhdCuScafDSaOVNbYGjIaz4kvBrgsoq6TgM4bi0JhTTWBu2nT51E8NfuDaHq1rMbzuuki50rS/K/G0pUrHCxBuFi9+huNZj09xNKbNqZmBYk=,iv:vea3qAf6MiAnJ5L0cWOEy/Hzr41x5m1QceEZPBQFugs=,tag:169F1zZfQMgdZWIpMNTA0w==,type:str]
+  lastmodified: "2026-11-26T15:51:32Z"
+  mac: ENC[AES256_GCM,data:KKJ29X9zFTBLQOgMgcPnW+wUCmthVEAG6tdf+UBeFID9C8JN0R9NPxxj5nDJvCKoYmvCxT9E+iVSCf03SFDdGhPodNpZvCVckVcN/2fL5nMj/bo0/S9KZxoYM1IFdiGhz8bxFghxba7mZJ2TksC038dzEGHwpchQHVjZXaE8M70=,iv:tYeIxTS9ZN2a9+IY5vI1Yf1PZRyiZEN2RLK/o06KnIo=,tag:+/YZc/J+OzAT5oC74Jkp/w==,type:str]
   encrypted_regex: ^(data|stringData)$
   mac_only_encrypted: true
   version: 3.12.1
