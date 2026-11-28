@@ -209,11 +209,6 @@ spec:
                 - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/env/CHAMBER_MODE, value: "deliver"}
                 # k8scc#70 tasks 1.2/4.3 (ferry133 2026-11-25, asked by k8scc-bf [97703c]): keep a session without anyone at the ttyd. This throwaway cluster only. — fleet-ops-02 [e3795b]
                 - {op: add, path: /spec/values/controllers/im/containers/app/env/SESSION_KEEP, value: "1"}
-                # STAGE-cf45e03 TEMPORARY: image cf45e03 (k8scc#160/#161, --reply-to inside a thread) on this throwaway cluster before jg-base#288, asked by jg-base-d4 [a9cc43]; remove when #288 has merged AND this cluster has fetched it — fleet-ops-02 [e3795b]
-                - {op: replace, path: /spec/values/controllers/im/containers/app/image/tag, value: "cf45e03@sha256:1965e3542a1b9522268458814269d4e75015c212afbbc7997659263c903da2bc"}  # STAGE-cf45e03
-                - {op: replace, path: /spec/values/controllers/im/containers/chamber-bridge/image/tag, value: "cf45e03@sha256:1965e3542a1b9522268458814269d4e75015c212afbbc7997659263c903da2bc"}  # STAGE-cf45e03
-                - {op: replace, path: /spec/values/controllers/im/containers/talos-mcp/image/tag, value: "cf45e03@sha256:1965e3542a1b9522268458814269d4e75015c212afbbc7997659263c903da2bc"}  # STAGE-cf45e03
-                - {op: replace, path: /spec/values/controllers/im/initContainers/oauth2-emails/image/tag, value: "cf45e03@sha256:1965e3542a1b9522268458814269d4e75015c212afbbc7997659263c903da2bc"}  # STAGE-cf45e03
             # TEST ONLY, this throwaway cluster: ferry133's public signing key (2026-11-20, his choice: override here,
             # not in jg-base). A public key is not a secret. The original list lives elsewhere.
             - target:
